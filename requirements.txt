@@ -1,0 +1,3 @@
+# Stage 1 (acquisition, validation). Further dependencies are added per stage.
+pyyaml==6.0.3
+pytest==9.1.1

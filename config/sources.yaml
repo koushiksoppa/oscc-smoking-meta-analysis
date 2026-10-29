@@ -1,0 +1,66 @@
+# Registry of search executions: one entry per database × execution.
+#
+# Rules (docs/protocol/provenance_rules.md; decisions D005, D011):
+#   - An entry is NEVER repurposed. Re-running the same query later is a new entry, because the
+#     database's content changes and the filters actually applied may differ.
+#   - `expected_records` is always accompanied by `count_source`, so a documented claim is never
+#     mistaken for a verified figure.
+#   - `filters_applied` records the filters ACTUALLY used, not the ones a strategy document
+#     intended. This is where v1 and v1r differ.
+#   - Checksums live in the append-only data/raw/SHA256SUMS, written only by
+#     `verify_raw --source <id> --register` after the reviewer has approved the intake report.
+#   - An entry is created only when an export exists, or to record that one is missing. No entry
+#     is created for a merely drafted search: that would imply an export.
+
+sources:
+  # ---------------------------------------------------------------------------------------------
+  # The original execution. Its export was never committed and is not on the researcher's machine;
+  # a filesystem-wide search found no copy. Per D005 it is NOT recreated and NOT substituted.
+  # The entry is retained so the historical claim keeps its identity and its own record count.
+  # ---------------------------------------------------------------------------------------------
+  - source_id: pubmed_v1
+    database: PubMed
+    search_version: v1
+    execution: historical
+    strategy_doc: docs/search/search_v1_pubmed.md
+    format: nbib
+    status: export_missing
+    raw_file: null
+    expected_records: 138
+    count_source: >-
+      Documented in docs/search/search_v1_pubmed.md and reported by the researcher.
+      UNVERIFIED: no export survives against which to check it.
+    search_date: null          # P009 — unknown; not recoverable from any file in the repository
+    filters_applied:
+      - Humans
+      - English
+    notes: >-
+      Export missing. Contributes no records to the PRISMA flow unless it is recovered. Superseded
+      in practice by pubmed_v1r, which re-ran the same query string but WITHOUT these filters.
+
+  # ---------------------------------------------------------------------------------------------
+  # Re-execution of the v1 query string, run by the researcher in October 2026. Same query, but no
+  # filters were applied (verified by inspecting the export: 2 Chinese-language records and 42
+  # records with no MeSH at all, both of which the documented v1 filters would have removed).
+  # This is NOT the original v1 export and must never be presented as it.
+  # ---------------------------------------------------------------------------------------------
+  - source_id: pubmed_v1r
+    database: PubMed
+    search_version: v1r
+    execution: re_execution
+    strategy_doc: docs/search/search_v1r_pubmed_reexecution.md
+    format: nbib
+    status: registered
+    raw_file: data/raw/pubmed/pubmed-v1r-reexecution-194.nbib
+    expected_records: 194
+    count_source: >-
+      Count reported by the researcher from the PubMed results page at execution, and consistent
+      with the 194 records in the export.
+    search_date: null          # exact execution date to be supplied; Entrez dates bound it to >= 2026-10-25
+    filters_applied: []        # none — D013: retrieve unfiltered, exclude by language/species at screening
+    notes: >-
+      Intake report results/validation/pubmed_v1r_intake_proposed.md was reviewed and the checksum
+      registered in data/raw/SHA256SUMS; this export is the research input for screening. That is
+      checksum registration within this repository, NOT external protocol registration (P006).
+      The 138-vs-194 difference is analysed in the strategy document; a residual of roughly 9-12
+      records remains unexplained (P012).
