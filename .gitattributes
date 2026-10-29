@@ -1,0 +1,3 @@
+# Raw exports must stay byte-identical (no line-ending conversion)
+data/raw/** -text
+*.nbib -text

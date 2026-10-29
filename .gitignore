@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# R
+.Rhistory
+.RData
+.Rproj.user/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Secrets (never commit)
+.env
+*.key
+*credentials*
+
+# Full-text PDFs: copyrighted; keep locally, track retrieval status in data/ instead
+papers/**/*.pdf
+data/fulltext/**/*.pdf
+
+# Script-generated datasets. Regenerable from the raw exports, which ARE tracked along with
+# data/raw/SHA256SUMS; the provenance check in scripts/dedup refuses stale derived data, so a
+# clone rebuilds these rather than relying on a committed copy.
+#   python -m scripts.acquisition.parse_citations --source <id>
+#   python -m scripts.validation.validate_citations --source <id>
+#   python -m scripts.dedup.deduplicate
+data/processed/
+
+# Office lock files
+~$*
