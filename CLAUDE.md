@@ -30,7 +30,8 @@ data/raw/        immutable exports + SHA256SUMS (append-only)
 data/processed/  script-generated datasets
 data/extraction/ study-level extraction data
 docs/            protocol, search versions, decisions, methods, data dictionary
-scripts/         common | acquisition | validation | dedup | (later: screening, extraction, analysis)
+scripts/         common | acquisition | validation | dedup | screening | (later: extraction, analysis)
+data/screening/  screening worksheets — TRACKED, not regenerable, unlike data/processed/
 results/         validation reports, tables, figures — generated, never hand-edited
 tests/
 config/sources.yaml   one entry per database x search EXECUTION (D011)
@@ -45,7 +46,7 @@ one is missing — never for a merely drafted search.
 
 ```
 raw export -> verify_raw (count + checksum gate) -> parse_citations -> validate_citations
-           -> deduplicate -> [screening] -> [extraction] -> [risk of bias] -> [synthesis] -> [reporting]
+           -> deduplicate -> screening -> [extraction] -> [risk of bias] -> [synthesis] -> [reporting]
 ```
 
 Stages in brackets are not built. Each stage re-verifies the raw checksum before reading, writes a

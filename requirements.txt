@@ -1,3 +1,10 @@
-# Stage 1 (acquisition, validation). Further dependencies are added per stage.
+# Direct dependencies of the committed code only. Verified against actual imports: the pipeline
+# uses the standard library (csv, json, hashlib, re, dataclasses, collections, difflib,
+# unicodedata) plus the two below.
 pyyaml==6.0.3
 pytest==9.1.1
+
+# NOT pinned here, deliberately: numpy, scipy and matplotlib are installed in the local .venv in
+# preparation for the statistical-synthesis stage, but no committed module imports them. Pinning a
+# dependency the code does not use would misrepresent what this project needs to run. They are
+# added when the analysis module that uses them is committed (see docs/methods/dependencies.md).

@@ -51,8 +51,8 @@ Scope, as settled in [`docs/protocol/eligibility_criteria.md`](docs/protocol/eli
 - [~] Literature search — v1 executed (138 records); the export is awaiting restoration, and a v2 strategy is proposed but not drafted
 - [x] Acquisition pipeline built and tested (parser, intake gate, validation)
 - [x] Deduplication built and tested (identifier and fingerprint matching; similar titles flagged for review, never merged)
-- [ ] Title/abstract screening
-- [ ] Full-text retrieval and screening
+- [~] Title/abstract screening — infrastructure built and tested; **0 of 194 records screened** ([guide](docs/methods/screening.md))
+- [~] Full-text retrieval and screening — infrastructure built; awaits title/abstract includes
 - [ ] Data extraction ([schema specified](docs/data_dictionary/extraction_schema.md))
 - [ ] Risk of bias assessment
 - [ ] Statistical analysis plan ([skeleton](docs/methods/statistical_analysis_plan.md))

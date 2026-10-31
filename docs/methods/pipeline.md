@@ -111,11 +111,28 @@ decisions, it does not make them). Records are mapped to a `report_id`, never de
 A `report_id` is a unique *publication*. The unique *study* (`study_id`) is established later, at full
 text, by the reviewer — several reports of one cohort collapse to one `study_id` (D004).
 
-## Stage 3 — Screening ⏳
+## Stage 3 — Screening ✅ infrastructure built · ⏳ **no record screened yet**
 
-Title/abstract then full text, using the controlled reason codes in
-`docs/protocol/eligibility_criteria.md`. One human reviewer (D010). Unresolved records stay
-unresolved. Every full-text exclusion carries exactly one reason code.
+```
+.venv/Scripts/python -m scripts.screening.worksheet --stage ta            # create (refuses to overwrite)
+.venv/Scripts/python -m scripts.screening.worksheet --stage ta --refresh  # add new records, keep decisions
+.venv/Scripts/python -m scripts.screening.validate_screening --stage ta
+.venv/Scripts/python -m scripts.screening.prisma
+```
+
+| | |
+|---|---|
+| Input | `data/processed/dedup/report_index.csv` (one row per unique report); raw checksum and raw-to-derived provenance verified first |
+| Output | `data/screening/screening_{ta,ft}.csv` — **tracked in Git**, unlike `data/processed/`, because decisions cannot be regenerated<br>`results/validation/screening_{ta,ft}_validation.md`<br>`results/validation/prisma_counts.md` |
+| Exit 1 | any validation error; an unreconcilable PRISMA flow; an attempt to overwrite an existing worksheet |
+
+The generator writes **every decision column empty**. It produces no suggestion, pre-sort or
+automated classification of any kind; decisions are the human reviewer's (D010). Exclusion reasons
+are restricted to the stage at which they can honestly be judged, so reasons needing the methods
+section are unavailable at title/abstract and the reviewer records `unresolved` instead.
+
+Full guide, including the spreadsheet caveat and the unresolved protocol decisions this module does
+**not** settle: [`screening.md`](screening.md).
 
 Blocked on **P003** — whether an undefined "non-smoker" reference group satisfies inclusion
 criterion 4, which sets the boundary of the `no_reference_group` code — and **P006**, registration

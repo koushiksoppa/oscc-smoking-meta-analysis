@@ -1,0 +1,80 @@
+# Screening vocabulary — the machine-readable counterpart of the table in
+# docs/protocol/eligibility_criteria.md. tests/test_screening.py asserts the two agree, so the
+# documentation and the code cannot drift apart.
+#
+# `stages` records where a reason may honestly be applied:
+#   ta = title/abstract, ft = full text.
+# Several reasons are ft-only because they cannot be judged from an abstract without guessing —
+# a screener who suspects one at title/abstract records `unresolved` and decides at full text.
+# This is a deliberate safeguard against erroneous exclusion under single-reviewer screening (D010).
+#
+# ---------------------------------------------------------------------------------------------
+# TWO ITEMS AWAITING THE REVIEWER — neither is resolved by this file
+#
+# 1. STAGE ASSIGNMENT IS NOT YET PROTOCOL. The table in docs/protocol/eligibility_criteria.md
+#    fixes the reason codes but assigns no stages. The `stages` values below are a proposed
+#    safeguard, not an approved rule, and they need the reviewer's endorsement (or amendment)
+#    before screening decisions made under them are treated as protocol-conformant.
+#
+# 2. ANATOMICAL AND HISTOLOGICAL CODES ARE DELIBERATELY ABSENT. The subsite and histology
+#    audits proposed additional codes — e.g. wrong_subsite_oropharynx, wrong_subsite_lip,
+#    subsite_not_separable, non_scc_histology. None is added here because the underlying
+#    decisions (lip scope, soft palate/uvula convention, straddling codes C02.8/C02.9/C05.8/
+#    C05.9/C06.80, site purity, SCC variants) remain open. Until they are settled, a screener
+#    meeting such a case records `unresolved`, or `other` with a written justification.
+#    Adding a code is a protocol change requiring a decision-log entry.
+# ---------------------------------------------------------------------------------------------
+
+decisions:
+  - include
+  - exclude
+  - unresolved        # needs judgement or more information; never forced to a decision
+
+# Not an exclusion reason. Per docs/protocol/eligibility_criteria.md it is reported in the PRISMA
+# flow as "reports not retrieved", so it lives in the full-text worksheet's retrieval status.
+retrieval_statuses:
+  - sought
+  - retrieved
+  - unavailable
+
+reasons:
+  - code: wrong_population
+    description: Not human, not adult, or not a relevant population
+    stages: [ta, ft]
+  - code: wrong_outcome
+    description: Outcome is not oral-cavity SCC per D008, including prognostic studies of survival or recurrence among people who already have OSCC
+    stages: [ta, ft]
+  - code: outcome_not_separable
+    description: Oral cavity pooled with oropharynx / larynx / head and neck, no oral-cavity-specific estimate
+    stages: [ft]
+  - code: wrong_exposure
+    description: Exposure is not smoked tobacco, or smokeless tobacco / betel quid only
+    stages: [ta, ft]
+  - code: no_reference_group
+    description: No non-smoking or never-smoking comparator
+    stages: [ft]
+  - code: wrong_design
+    description: Not case-control or cohort
+    stages: [ta, ft]
+  - code: review_or_meta
+    description: Systematic review, meta-analysis, narrative review
+    stages: [ta, ft]
+  - code: animal_or_invitro
+    description: Animal, cell or in-vitro study
+    stages: [ta, ft]
+  - code: no_usable_data
+    description: No effect estimate and no data from which to derive one
+    stages: [ft]
+  - code: duplicate_publication
+    description: Same study population already included; links to the retained report_id
+    stages: [ft]
+  - code: conference_abstract
+    description: Abstract with insufficient detail for reliable extraction
+    stages: [ta, ft]
+  - code: not_english
+    description: Not published in English
+    stages: [ta, ft]
+  - code: other
+    description: Requires a written justification in the notes column
+    stages: [ta, ft]
+    requires_note: true
