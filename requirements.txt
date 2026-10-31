@@ -1,10 +1,8 @@
-# Direct dependencies of the committed code only. Verified against actual imports: the pipeline
-# uses the standard library (csv, json, hashlib, re, dataclasses, collections, difflib,
-# unicodedata) plus the two below.
-pyyaml==6.0.3
-pytest==9.1.1
+# Direct dependencies of the committed code only, verified against actual imports.
+pyyaml==6.0.3          # config/sources.yaml, config/screening.yaml
+pytest==9.1.1          # test suite
+scipy==1.18.1          # scripts/analysis/meta.py — chi2, normal, t distributions; linregress
+matplotlib==3.11.2     # scripts/analysis/plots.py — forest and funnel plots
 
-# NOT pinned here, deliberately: numpy, scipy and matplotlib are installed in the local .venv in
-# preparation for the statistical-synthesis stage, but no committed module imports them. Pinning a
-# dependency the code does not use would misrepresent what this project needs to run. They are
-# added when the analysis module that uses them is committed (see docs/methods/dependencies.md).
+# numpy is deliberately NOT pinned: no module imports it directly. It arrives as a transitive
+# dependency of scipy and matplotlib, which pin their own requirement better than this file could.
