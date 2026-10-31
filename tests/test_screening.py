@@ -411,7 +411,7 @@ def test_prisma_counts_awaiting_screening_separately(sandbox, monkeypatch):
 def test_prisma_detects_an_unreconcilable_flow():
     flow = {"identified": 100, "duplicates_removed": 5, "unique_reports": 90,
             "ta_reasons": {}, "ft_reasons": {}, "ft_exists": False}
-    assert any("≠ unique reports" in p for p in prisma.consistency(flow))
+    assert any("does not equal unique reports" in p for p in prisma.consistency(flow))
 
 
 def test_prisma_detects_reasons_not_matching_exclusions():

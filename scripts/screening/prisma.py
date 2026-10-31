@@ -106,7 +106,13 @@ def gather() -> dict:
 
 
 def consistency(flow: dict) -> list[str]:
-    """Identities the flow must satisfy. Only checked where both sides are known."""
+    """Identities the flow must satisfy. Only checked where both sides are known.
+
+    Messages are deliberately ASCII: they are printed to stderr as well as written to a
+    UTF-8 report, and a Windows cp1252 console raises UnicodeEncodeError on characters
+    such as U+2212 MINUS SIGN - which would crash the run exactly when the flow fails to
+    reconcile and the message matters most.
+    """
     problems = []
 
     def known(*keys):
@@ -115,11 +121,11 @@ def consistency(flow: dict) -> list[str]:
     if known("identified", "duplicates_removed", "unique_reports"):
         if flow["identified"] - flow["duplicates_removed"] != flow["unique_reports"]:
             problems.append(
-                f"identified ({flow['identified']}) − duplicates removed "
-                f"({flow['duplicates_removed']}) ≠ unique reports ({flow['unique_reports']})")
+                f"identified ({flow['identified']}) minus duplicates removed "
+                f"({flow['duplicates_removed']}) does not equal unique reports ({flow['unique_reports']})")
     if known("unique_reports", "ta_total") and flow["unique_reports"] != flow["ta_total"]:
         problems.append(
-            f"unique reports ({flow['unique_reports']}) ≠ reports in the title/abstract "
+            f"unique reports ({flow['unique_reports']}) does not equal reports in the title/abstract "
             f"worksheet ({flow['ta_total']})")
     if known("ta_screened", "ta_excluded", "ta_included", "ta_unresolved"):
         if flow["ta_excluded"] + flow["ta_included"] + flow["ta_unresolved"] != flow["ta_screened"]:
@@ -134,7 +140,7 @@ def consistency(flow: dict) -> list[str]:
     if isinstance(flow.get("ft_excluded"), int) and flow["ft_excluded"] != sum(
             flow["ft_reasons"].values()):
         problems.append(
-            f"full-text exclusions ({flow['ft_excluded']}) ≠ sum of reason counts "
+            f"full-text exclusions ({flow['ft_excluded']}) does not equal sum of reason counts "
             f"({sum(flow['ft_reasons'].values())}) — every exclusion needs exactly one reason")
     return problems
 

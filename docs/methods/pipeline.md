@@ -176,7 +176,21 @@ Missing information recorded as missing, never as high risk.
 
 Gated on provenance rule 13 and an approved SAP (`docs/methods/` — template pending). Blocked on P008.
 
-## Stage 8 — Reporting ⏳
+## Stage 8 — Reporting ⏳ partly built
 
-PRISMA 2020 flow, characteristics table, risk-of-bias summary, forest and funnel plots — all
-generated from the analysis dataset by code, never hand-typed.
+```
+.venv/Scripts/python -m scripts.visualization.prisma_diagram
+```
+
+| | |
+|---|---|
+| Input | the counts from `scripts.screening.prisma.gather()` — the same source as `results/validation/prisma_counts.md`, so the figure and the table cannot disagree |
+| Output | `results/figures/prisma_flow.png` |
+| Exit 1 | **the flow does not reconcile** — no diagram is drawn, because a flow diagram asserts that its numbers add up |
+
+A stage that has not run shows **`n = pending`**, never `n = 0`, and a partially screened stage
+shows both numbers (`n = 50 of 194`). The figure carries the same screening-status banner as the
+counts table, so an unscreened flow cannot be mistaken for a null finding.
+
+Still to build: characteristics table, risk-of-bias summary. Forest and funnel plots exist in
+`scripts/analysis/plots.py` but have no real data to draw.
