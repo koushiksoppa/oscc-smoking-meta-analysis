@@ -1,0 +1,117 @@
+# Extraction schema — the machine-readable counterpart of
+# docs/data_dictionary/extraction_schema.md. tests/test_extraction.py asserts the two agree.
+#
+# Three principles are enforced by the validator, not left to discipline:
+#   1. Reported values and calculated values never share a field.
+#   2. Missing is a value: NR (not reported), NA (not applicable), UNCLEAR. Never blank, never
+#      zero, never inferred.
+#   3. Every extracted number carries a source_location (page, table or figure).
+#
+# ---------------------------------------------------------------------------------------------
+# TWO FIELDS ARE DELIBERATELY UNRESOLVED
+#   comparator_type   depends on P003 (is an undefined "non-smoker" reference eligible?)
+#   exposure_contrast depends on P004 (which contrast is primary?)
+# Their candidate values are listed so extraction can record what a study reported, but
+# `status: unresolved` tells the validator not to treat any value as protocol-conformant yet.
+# Deciding either is a protocol change requiring a decision-log entry.
+# ---------------------------------------------------------------------------------------------
+
+missing_codes: [NR, NA, UNCLEAR]
+
+studies:
+  required: [study_id, primary_report_id, first_author, pub_year, country, design]
+  fields:
+    study_id:            {type: id,      description: "Unique study population; the unit of analysis (D004)"}
+    report_ids:          {type: list,    description: "All publications of this population, semicolon-separated"}
+    primary_report_id:   {type: id,      description: "The report used for extraction"}
+    pmid:                {type: text,    description: "Of the primary report"}
+    doi:                 {type: text,    description: "Of the primary report"}
+    first_author:        {type: text,    description: "As reported"}
+    pub_year:            {type: year,    description: "As reported"}
+    country:             {type: text,    description: "As reported"}
+    journal:             {type: text,    description: "As reported"}
+    source_database:     {type: text,    description: "Provenance: which search execution found it"}
+    full_text_source:    {type: text,    description: "How the full text was obtained"}
+    design:              {type: enum,    values: [case_control, cohort], description: "Observational design"}
+    design_detail:       {type: enum,    values: [prospective, retrospective, nested_case_control, UNCLEAR], description: "Design detail"}
+    setting:             {type: enum,    values: [hospital_based, population_based, UNCLEAR], description: "Recruitment setting"}
+    centres:             {type: enum,    values: [single, multi, UNCLEAR], description: "Single or multicentre"}
+    recruitment_period:  {type: text,    description: "As reported"}
+    n_total:             {type: count,   description: "Total participants"}
+    n_cases:             {type: count,   description: "NA for cohorts without a control group"}
+    n_controls:          {type: count,   description: "Controls"}
+    person_years:        {type: number,  description: "Cohorts only; NA otherwise"}
+    age_summary:         {type: text,    description: "As reported, with the statistic named"}
+    sex_distribution:    {type: text,    description: "As reported"}
+    outcome_ascertainment: {type: text,  description: "Registry, pathology records, or other"}
+    histology_confirmed: {type: enum,    values: [all, partial, NR], description: "D008"}
+    scc_proportion:      {type: percent, description: "Reported per cent SCC; D008 requires at least 90 unless histology_confirmed is all"}
+    anatomical_sites:    {type: text,    description: "Subsites as reported, verbatim"}
+    site_separable:      {type: enum,    values: ["yes", "no", unclear], description: "Is an oral-cavity-specific estimate available"}
+    case_definition:     {type: text,    description: "Incident or prevalent; ICD codes if given"}
+    extracted_by:        {type: text,    description: "Human reviewer (D010)"}
+    extraction_date:     {type: text,    description: "Date of extraction"}
+    extraction_confidence: {type: enum,  values: [high, moderate, low], description: "Reviewer's confidence"}
+    notes:               {type: text,    description: "Free text"}
+
+estimates:
+  required: [estimate_id, study_id, source_location, measure, estimate, ci_low, ci_high,
+             adjustment, adjusted_alcohol, verified]
+  fields:
+    estimate_id:         {type: id,      description: "Unique per estimate"}
+    study_id:            {type: id,      description: "Must exist in the studies table"}
+    report_id:           {type: id,      description: "Report the estimate came from"}
+    source_location:     {type: text,    description: "REQUIRED. For example Table 3 row 2 p. 1145"}
+    measure:             {type: enum,    values: [OR, RR, HR], description: "Effect measure"}
+    estimate:            {type: number,  description: "As reported"}
+    ci_low:              {type: number,  description: "As reported"}
+    ci_high:             {type: number,  description: "As reported"}
+    ci_level:            {type: number,  description: "Only 0.95 is handled downstream"}
+    se_reported:         {type: number,  description: "If the paper gives it"}
+    p_value_reported:    {type: text,    description: "As reported, including forms such as <0.001"}
+    log_estimate_calc:   {type: number,  description: "DERIVED: never typed by hand"}
+    se_calc:             {type: number,  description: "DERIVED"}
+    derivation:          {type: text,    description: "Formula and inputs used for any derived value"}
+    adjustment:          {type: enum,    values: [crude, adjusted], description: "Crude or multivariable"}
+    adjusted_for:        {type: list,    description: "Full covariate list verbatim; NA if crude"}
+    adjusted_alcohol:    {type: enum,    values: ["yes", "no", NR], description: "Own field: key confounder (D009)"}
+    adjusted_age:        {type: enum,    values: ["yes", "no", NR], description: "Adjusted for age"}
+    adjusted_sex:        {type: enum,    values: ["yes", "no", NR], description: "Adjusted for sex"}
+    adjusted_ses:        {type: enum,    values: ["yes", "no", NR], description: "Adjusted for socioeconomic status"}
+    adjusted_smokeless_tobacco: {type: enum, values: ["yes", "no", NR], description: "Confounder, not exposure (D009)"}
+    adjusted_betel_quid: {type: enum,    values: ["yes", "no", NR], description: "Adjusted for betel quid"}
+    adjusted_hpv:        {type: enum,    values: ["yes", "no", NR], description: "Adjusted for HPV"}
+    exposure_definition: {type: text,    description: "Verbatim"}
+    exposure_category:   {type: text,    description: "Verbatim label; NEVER auto-mapped (rule 9)"}
+    exposure_contrast:   {type: enum,    status: unresolved, depends_on: P004,
+                          values: [ever, current, former, dose_tier, other],
+                          description: "Contrast as reported; primary contrast pending P004"}
+    product_types:       {type: list,    description: "cigarette / bidi / cigar / pipe / mixed / NR (D009)"}
+    intensity_value:     {type: number,  description: "Numeric intensity if reported"}
+    intensity_unit:      {type: text,    description: "For example cigarettes per day / pack-years / years smoked"}
+    comparator_definition: {type: text,  description: "Verbatim"}
+    comparator_type:     {type: enum,    status: unresolved, depends_on: P003,
+                          values: [never_smoker, non_smoker_undefined, other],
+                          description: "Reference group as reported; eligibility pending P003"}
+    outcome_site:        {type: text,    description: "Site this estimate refers to"}
+    n_exposed_cases:     {type: count,   description: "2x2 cell a"}
+    n_exposed_controls:  {type: count,   description: "2x2 cell b"}
+    n_unexposed_cases:   {type: count,   description: "2x2 cell c"}
+    n_unexposed_controls: {type: count,  description: "2x2 cell d"}
+    verified:            {type: enum,    values: ["yes", "no"], description: "Must be yes before an estimate enters synthesis"}
+    verified_by:         {type: text,    description: "Who verified it"}
+    verification_notes:  {type: text,    description: "Free text"}
+    selected_for_analysis: {type: enum,  values: ["yes", "no"], description: "At most one per study per analysis (D004); a reviewer decision"}
+    selection_rationale: {type: text,    description: "Required when selected_for_analysis is yes"}
+    notes:               {type: text,    description: "Free text"}
+
+thresholds:
+  # Relative gap between a reported estimate and the geometric mean of its CI above which the
+  # inconsistency is reported. Mild asymmetry is normal when a source rounds its interval.
+  ci_asymmetry_warning: 0.10
+  # Gap between the reported estimate and the OR implied by the 2x2 counts, above which the two
+  # are reported as inconsistent. Authors often report an adjusted OR alongside crude counts, so
+  # a difference is expected and this is a warning, never an error.
+  implied_or_warning: 0.20
+  # D008: SCC must be histologically confirmed or a stated majority of at least this per cent.
+  min_scc_proportion: 90.0

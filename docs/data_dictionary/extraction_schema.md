@@ -53,7 +53,7 @@ estimate enters an analysis happens later and is recorded separately — never b
 | `source_location` | text | **Required.** e.g. `Table 3, row 2, p. 1145` |
 | `measure` | enum | `OR`, `RR`, `HR` |
 | `estimate` | num | As reported |
-| `ci_lower`, `ci_upper`, `ci_level` | num | As reported |
+| `ci_low`, `ci_high`, `ci_level` | num | As reported. **Named `ci_low`/`ci_high`** to match `scripts/analysis/`; an earlier draft of this document said `ci_lower`/`ci_upper`, and the code's names are now authoritative |
 | `se_reported` | num | If the paper gives it |
 | `p_value_reported` | text | As reported, including `<0.001` |
 | `log_estimate_calc`, `se_calc` | num | Derived; `derivation` states the formula and inputs |
@@ -73,7 +73,21 @@ estimate enters an analysis happens later and is recorded separately — never b
 | `n_exposed_cases`, `n_exposed_controls`, `n_unexposed_cases`, `n_unexposed_controls` | int | 2×2 where available |
 | `verified` | enum | `yes`/`no` — **required `yes` before an estimate enters synthesis** |
 | `verified_by`, `verification_notes` | text | |
+| `selected_for_analysis` | enum | `yes`/`no`. **At most one per `study_id` per analysis** (D004), enforced by the validator |
+| `selection_rationale` | text | **Required when `selected_for_analysis` is `yes`** |
 | `notes` | text | |
+
+### Why selection is a separate, recorded step
+
+All reported estimates are preserved (provenance rule 8), so a study contributing several — crude
+and adjusted, ever and current, different models — keeps every one. But only one may enter an
+analysis, or the study is counted twice (D004).
+
+Choosing which is a **methodological judgement**, not a mechanical filter: it depends on the
+adjusted-vs-unadjusted rule, on P003 and P004, and on which model a paper reports. So it is
+recorded per estimate with a written rationale rather than applied by code. Nothing is deleted,
+and the choice is auditable. The validator refuses an unverified estimate, a selection with no
+rationale, and more than one selection per study.
 
 ## Table 3 — `risk_of_bias` (one row per `study_id` per domain)
 
