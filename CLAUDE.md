@@ -30,8 +30,9 @@ data/raw/        immutable exports + SHA256SUMS (append-only)
 data/processed/  script-generated datasets
 data/extraction/ study-level extraction data
 docs/            protocol, search versions, decisions, methods, data dictionary
-scripts/         common | acquisition | validation | dedup | screening | (later: extraction, analysis)
+scripts/         common | acquisition | validation | dedup | screening | extraction | analysis
 data/screening/  screening worksheets — TRACKED, not regenerable, unlike data/processed/
+data/extraction/ extraction tables   — TRACKED, same reason
 results/         validation reports, tables, figures — generated, never hand-edited
 tests/
 config/sources.yaml   one entry per database x search EXECUTION (D011)
@@ -46,12 +47,21 @@ one is missing — never for a merely drafted search.
 
 ```
 raw export -> verify_raw (count + checksum gate) -> parse_citations -> validate_citations
-           -> deduplicate -> screening -> [extraction] -> [risk of bias] -> [synthesis] -> [reporting]
+           -> deduplicate -> screening -> extraction -> [risk of bias] -> synthesis -> [reporting]
 ```
 
-Stages in brackets are not built. Each stage re-verifies the raw checksum before reading, writes a
-report to `results/validation/`, and exits non-zero on missing, altered or invalid input.
-Stage details: `docs/methods/pipeline.md`. Receiving the export: `docs/methods/intake_checklist.md`.
+Stages in brackets are not built. Every other stage is built and tested, but **only acquisition,
+validation and deduplication have been run on real data**: 0 of 194 records are screened, so
+nothing is extracted and no pooled estimate exists. Screening, extraction, appraisal and the
+judgements behind them are the human reviewer's (D010) and cannot be generated.
+
+Each stage re-verifies provenance before reading, writes a report to `results/validation/`, and
+exits non-zero on missing, altered or invalid input. Three gates refuse in sequence: extraction
+needs full-text includes, synthesis needs extracted estimates, and the analysis CLI rejects
+anything marked synthetic.
+
+Stage details: `docs/methods/pipeline.md`. Guides: `intake_checklist.md`, `screening.md`,
+`extraction.md`, `analysis_validation.md`.
 
 ## Conventions
 

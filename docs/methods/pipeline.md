@@ -143,11 +143,29 @@ through the `no_usable_data` boundary, for a study reporting no contrast the pro
 
 Tracks retrieval status and source per `report_id`. PDFs are gitignored; only status is tracked.
 
-## Stage 5 — Extraction ⏳
+## Stage 5 — Extraction ✅ infrastructure built · ⏳ **nothing extracted yet**
 
-Schema per `docs/protocol/provenance_rules.md` §4–5: reported vs calculated values kept separate,
-source location (page/table/figure) required, alcohol adjustment its own field, exposure categories
-never harmonised automatically. Blocked on P003, P004.
+```
+.venv/Scripts/python -m scripts.extraction.template              # create (refuses to overwrite)
+.venv/Scripts/python -m scripts.extraction.template --refresh    # add new studies, keep values
+.venv/Scripts/python -m scripts.extraction.validate_extraction
+```
+
+| | |
+|---|---|
+| Input | full-text includes from `data/screening/screening_ft.csv` |
+| Output | `data/extraction/{studies,estimates}.csv` — **tracked in Git**, since extracted values cannot be regenerated<br>`results/validation/extraction_validation.md` |
+| Exit 1 | no full-text includes exist; any validation error; an attempt to overwrite an existing table |
+
+Reported and calculated values are kept in separate fields; `source_location` is required for every
+estimate; alcohol adjustment is its own field (D009); exposure categories are recorded verbatim and
+never harmonised (rule 9). All reported estimates are preserved, and the **one** that enters an
+analysis is marked with a written rationale (D004) rather than chosen by code.
+
+`comparator_type` (**P003**) and `exposure_contrast` (**P004**) are marked unresolved: a value is
+recorded and reported as pending, and an unexpected one warns rather than errors.
+
+Full guide: [`extraction.md`](extraction.md). Blocked on P003 and P014–P022 for eligibility.
 
 ## Stage 6 — Risk of bias ⏳
 
