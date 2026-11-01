@@ -81,20 +81,44 @@ def gather() -> dict:
         ft = read(ft_path)
         statuses = Counter((r.get("full_text_status") or "").strip() for r in ft)
         counts = Counter((r.get("decision") or "").strip() or "unscreened" for r in ft)
+        retrieval_recorded = sum(n for status, n in statuses.items() if status)
+        decided = len(ft) - counts.get("unscreened", 0)
+
+        # The worksheet *is* the set sought for retrieval, so this is a real count as soon
+        # as the file exists.
         flow["ft_sought"] = len(ft)
-        flow["ft_not_retrieved"] = statuses.get("unavailable", 0)
-        flow["ft_assessed"] = len(ft) - statuses.get("unavailable", 0)
-        flow["ft_excluded"] = counts.get(EXCLUDE, 0)
-        flow["ft_included"] = counts.get(INCLUDE, 0)
-        flow["ft_unresolved"] = counts.get(UNRESOLVED, 0)
-        flow["ft_reasons"] = Counter(
-            (r.get("reason_code") or "").strip() for r in ft
-            if (r.get("decision") or "").strip() == EXCLUDE)
+        flow["ft_screened"] = decided
+        flow["ft_unscreened"] = counts.get("unscreened", 0)
+        flow["ft_decided"] = bool(decided)
+
+        # Retrieval and eligibility are separate acts, and an empty retrieval status means
+        # nothing has been sought yet - not that every report arrived. Reporting "0 not
+        # retrieved" and "all assessed" off empty columns would assert work never done.
+        if retrieval_recorded:
+            flow["ft_not_retrieved"] = statuses.get("unavailable", 0)
+            flow["ft_assessed"] = len(ft) - statuses.get("unavailable", 0)
+        else:
+            flow["ft_not_retrieved"] = flow["ft_assessed"] = PENDING
+
+        # Likewise a stage holding no decision has no includes and no excludes: it has not
+        # been done. "Reports included: 0" there states a finding the data cannot support.
+        if decided:
+            flow["ft_excluded"] = counts.get(EXCLUDE, 0)
+            flow["ft_included"] = counts.get(INCLUDE, 0)
+            flow["ft_unresolved"] = counts.get(UNRESOLVED, 0)
+            flow["ft_reasons"] = Counter(
+                (r.get("reason_code") or "").strip() for r in ft
+                if (r.get("decision") or "").strip() == EXCLUDE)
+        else:
+            for k in ("ft_excluded", "ft_included", "ft_unresolved"):
+                flow[k] = PENDING
+            flow["ft_reasons"] = {}
     else:
         for k in ("ft_sought", "ft_not_retrieved", "ft_assessed", "ft_excluded", "ft_included",
-                  "ft_unresolved"):
+                  "ft_unresolved", "ft_screened", "ft_unscreened"):
             flow[k] = PENDING
         flow["ft_reasons"] = {}
+        flow["ft_decided"] = False
 
     # study_id is assigned by the reviewer at full text (D004); the pipeline cannot infer it.
     flow["included_studies"] = PENDING
@@ -162,9 +186,30 @@ def screening_banner(flow: dict) -> str:
                 "ineligible, and no result may be inferred from this table.")
     if screened < total:
         return (f"> **SCREENING STATUS: IN PROGRESS.** {screened} of {total} reports screened, "
-                f"{total - screened} awaiting. Counts below are provisional and will change.")
+                f"{total - screened} awaiting. Counts below are provisional and will change."
+                + full_text_banner(flow))
     return (f"> **SCREENING STATUS: TITLE/ABSTRACT COMPLETE.** All {total} reports screened. "
-            "Full-text and synthesis stages may still be pending.")
+            "Full-text and synthesis stages may still be pending." + full_text_banner(flow))
+
+
+def full_text_banner(flow: dict) -> str:
+    """State full-text progress, or say nothing when there is no full-text worksheet.
+
+    Building the worksheet creates 85 empty rows; without this, a reader meets a table of
+    zeros where no report has been looked at. Returns "" for a flow that carries no
+    full-text counts, so the title/abstract banner is unchanged when no worksheet exists.
+    """
+    sought, screened = flow.get("ft_sought"), flow.get("ft_screened")
+    if not isinstance(sought, int):
+        return ""
+    if not isinstance(screened, int) or screened == 0:
+        return (f" **FULL TEXT: NOT ASSESSED.** {sought} report(s) are sought for retrieval and "
+                "none has been assessed, so every full-text count below is pending, **not** a "
+                "finding that nothing was eligible.")
+    if screened < sought:
+        return (f" **FULL TEXT: IN PROGRESS.** {screened} of {sought} reports assessed; "
+                "full-text counts are provisional.")
+    return f" **FULL TEXT: COMPLETE.** All {sought} reports assessed."
 
 
 def render(flow: dict, problems: list[str]) -> str:
@@ -198,6 +243,7 @@ def render(flow: dict, problems: list[str]) -> str:
     lines += [
         "## Full-text screening", "", "| Item | Count |", "|---|---|",
         f"| Reports sought for retrieval | {v('ft_sought')} |",
+        f"| … not yet assessed | {v('ft_unscreened')} |",
         f"| Reports not retrieved | {v('ft_not_retrieved')} |",
         f"| Reports assessed for eligibility | {v('ft_assessed')} |",
         f"| Reports excluded | {v('ft_excluded')} |",
@@ -207,10 +253,12 @@ def render(flow: dict, problems: list[str]) -> str:
         "Every reason in the controlled vocabulary is listed so that a zero is visible as a zero.",
         "", "| Reason | Count |", "|---|---|",
     ]
+    # A stage with decisions recorded has real zeros; one with none has not been done.
+    decided = flow.get("ft_decided", flow.get("ft_exists"))
     for code in vocab.codes(FT):
         # A stage that exists but recorded no exclusions of this kind is a real zero; a stage
         # that has not run is pending. Printing 0 for the latter would misreport progress.
-        n = flow["ft_reasons"].get(code, 0) if flow["ft_exists"] else PENDING
+        n = flow["ft_reasons"].get(code, 0) if decided else PENDING
         lines.append(f"| `{code}` | {n} |")
     lines += [
         "", "## Included", "", "| Item | Count |", "|---|---|",

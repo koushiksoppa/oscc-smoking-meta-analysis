@@ -437,3 +437,102 @@ def test_prisma_rejects_more_sought_than_included():
     flow = {"ta_included": 2, "ft_sought": 5, "ta_reasons": {}, "ft_reasons": {},
             "ft_exists": True}
     assert any("exceeds title/abstract includes" in p for p in prisma.consistency(flow))
+
+
+# --- PRISMA: the full-text stage must not report "not done" as a zero -----------------
+
+def _write(path, rows):
+    with open(path, "w", encoding="utf-8", newline="") as fh:
+        w = csv.DictWriter(fh, fieldnames=list(rows[0]))
+        w.writeheader()
+        w.writerows(rows)
+
+
+def _ta_include_both(sandbox, monkeypatch):
+    """Build a title/abstract sheet with both reports included, then the full-text sheet."""
+    monkeypatch.setattr(prisma, "load_sources", lambda: [])
+    worksheet.build(TA)
+    path = worksheet.worksheet_path(TA)
+    rows = worksheet.read_csv(path)
+    for r in rows:
+        r.update(decision=INCLUDE, reviewer="SSK")
+    _write(path, rows)
+    worksheet.build(FT)
+    return worksheet.worksheet_path(FT)
+
+
+def test_full_text_counts_are_pending_until_a_decision_is_recorded(sandbox, monkeypatch):
+    """Creating the worksheet makes rows exist; it does not make them assessed."""
+    _ta_include_both(sandbox, monkeypatch)
+    flow = prisma.gather()
+
+    assert flow["ft_sought"] == 2, "the worksheet is the set sought, so this is a real count"
+    assert flow["ft_unscreened"] == 2 and flow["ft_screened"] == 0
+    for key in ("ft_assessed", "ft_not_retrieved", "ft_included", "ft_excluded",
+                "ft_unresolved"):
+        assert flow[key] == prisma.PENDING, f"{key} must be pending, not zero"
+    assert prisma.consistency(flow) == []
+
+
+def test_full_text_retrieval_is_reported_separately_from_eligibility(sandbox, monkeypatch):
+    """A retrieved report is not an assessed one; recording a status settles only retrieval."""
+    path = _ta_include_both(sandbox, monkeypatch)
+    rows = worksheet.read_csv(path)
+    rows[0]["full_text_status"] = "retrieved"
+    rows[1]["full_text_status"] = "unavailable"
+    _write(path, rows)
+
+    flow = prisma.gather()
+    assert flow["ft_not_retrieved"] == 1 and flow["ft_assessed"] == 1
+    assert flow["ft_included"] == prisma.PENDING, "no decision recorded yet"
+    assert prisma.consistency(flow) == []
+
+
+def test_partially_assessed_full_text_stage_reports_both_numbers(sandbox, monkeypatch):
+    path = _ta_include_both(sandbox, monkeypatch)
+    rows = worksheet.read_csv(path)
+    rows[0].update(full_text_status="retrieved", decision=EXCLUDE,
+                   reason_code="no_usable_data", reviewer="SSK")
+    rows[1]["full_text_status"] = "retrieved"
+    _write(path, rows)
+
+    flow = prisma.gather()
+    assert flow["ft_screened"] == 1 and flow["ft_unscreened"] == 1
+    assert flow["ft_excluded"] == 1 and flow["ft_included"] == 0
+    assert "IN PROGRESS" in prisma.full_text_banner(flow)
+
+
+def test_full_text_reason_rows_stay_pending_until_a_decision_exists(sandbox, monkeypatch):
+    _ta_include_both(sandbox, monkeypatch)
+    flow = prisma.gather()
+    body = prisma.render(flow, [])
+    assert "| `no_usable_data` | <pending> |" in body
+    assert "| `no_usable_data` | 0 |" not in body
+
+
+def test_banner_warns_that_an_unassessed_full_text_stage_is_not_a_finding(sandbox, monkeypatch):
+    _ta_include_both(sandbox, monkeypatch)
+    banner = prisma.screening_banner(prisma.gather())
+    assert "FULL TEXT: NOT ASSESSED" in banner
+    assert "not** a finding that nothing was eligible" in banner
+
+
+def test_banner_says_nothing_about_full_text_when_no_worksheet_exists():
+    """Guards the contract the title/abstract banner tests rely on."""
+    assert prisma.full_text_banner({"ta_total": 194, "ta_screened": 194}) == ""
+    assert prisma.full_text_banner({"ft_sought": prisma.PENDING}) == ""
+    assert "FULL TEXT" not in prisma.screening_banner({"ta_total": 194, "ta_screened": 194})
+
+
+def test_a_fully_assessed_full_text_stage_reports_real_zeros(sandbox, monkeypatch):
+    """Once every report is decided, a zero is a genuine zero and must show as one."""
+    path = _ta_include_both(sandbox, monkeypatch)
+    rows = worksheet.read_csv(path)
+    for r in rows:
+        r.update(full_text_status="retrieved", decision=INCLUDE, reviewer="SSK")
+    _write(path, rows)
+
+    flow = prisma.gather()
+    assert flow["ft_included"] == 2 and flow["ft_excluded"] == 0
+    assert "FULL TEXT: COMPLETE" in prisma.full_text_banner(flow)
+    assert "| `no_usable_data` | 0 |" in prisma.render(flow, [])

@@ -99,7 +99,7 @@ def build_boxes(flow: dict) -> Diagram:
 
     excluded = [f"Reports excluded ({count(flow.get('ft_excluded'))}):"]
     reasons = flow.get("ft_reasons") or {}
-    if flow.get("ft_exists"):
+    if flow.get("ft_decided", flow.get("ft_exists")):
         shown = [(code, reasons.get(code, 0)) for code in vocab.codes(FT)]
         shown = [(c, n) for c, n in shown if n] or [("none recorded", 0)]
         excluded += [f"  {code} (n = {n})" for code, n in shown]
