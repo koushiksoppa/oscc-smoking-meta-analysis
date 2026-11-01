@@ -50,10 +50,11 @@ raw export -> verify_raw (count + checksum gate) -> parse_citations -> validate_
            -> deduplicate -> screening -> extraction -> [risk of bias] -> synthesis -> [reporting]
 ```
 
-Stages in brackets are not built. Every other stage is built and tested, but **only acquisition,
-validation and deduplication have been run on real data**: 0 of 194 records are screened, so
-nothing is extracted and no pooled estimate exists. Screening, extraction, appraisal and the
-judgements behind them are the human reviewer's (D010) and cannot be generated.
+Stages in brackets are not built. Every other stage is built and tested. Acquisition, validation,
+deduplication and **title/abstract screening** have been run on real data; **full-text retrieval,
+extraction, appraisal and synthesis have not**, so no study is yet judged eligible and no pooled
+estimate exists. Screening, extraction, appraisal and the judgements behind them are the human
+reviewer's (D010) and cannot be generated.
 
 Each stage re-verifies provenance before reading, writes a report to `results/validation/`, and
 exits non-zero on missing, altered or invalid input. Three gates refuse in sequence: extraction
@@ -76,14 +77,19 @@ Stage details: `docs/methods/pipeline.md`. Guides: `intake_checklist.md`, `scree
 
 ## Current state
 
-Stages 1 and 2 are built and tested. No stage has yet run on real data: `pubmed_v1r` (194 records,
-the v1 query re-run unfiltered) is on disk with a clean intake report but is **not registered** —
-that is the researcher's call. `pubmed_v1`, the original 138-record execution, is lost and recorded
-as `export_missing`.
+`pubmed_v1r` (194 records, the v1 query re-run unfiltered) is registered, parsed, validated and
+deduplicated. `pubmed_v1`, the original 138-record execution, is lost and recorded as
+`export_missing`.
 
-Decisions D001–D013 are settled. Open: P003 (comparator), P004 (contrast), P006 (PROSPERO),
-P007 (other databases), P008 (R/metafor), P009 (historical v1 search date), P010 (fixture policy),
-P012 (~9-record residual in the 138 reconciliation), P013 (v2 retrieves 4,770 records — feasibility
-under single-reviewer screening). Search v2 is drafted and syntax-validated but **not executed**.
+**Title/abstract screening is complete**: 194 of 194 reports screened, 109 excluded with a reason,
+85 taken forward, 0 unresolved. The full-text worksheet exists with those 85 rows and **every
+reviewer field empty** — nothing has been retrieved or assessed. A decision-log entry describing
+how the title/abstract pass was conducted is still outstanding and is needed for PRISMA item 8.
 
-Nothing is committed yet and Git has no user identity configured.
+Decisions D001–D015 are settled. Open: P003 (comparator), P004 (contrast), P006 (PROSPERO),
+P007 (other databases), P009 (historical v1 search date), P010 (fixture policy), P012 (~9-record
+residual in the 138 reconciliation), P013 (v2 retrieves 4,770 records — feasibility under
+single-reviewer screening), P014–P022 (anatomical and histological scope). Search v2 is drafted and
+syntax-validated but **not executed**. The stage assignment of exclusion reasons in
+`config/screening.yaml` is still a proposal awaiting endorsement, and no identifier yet covers
+whether populations restricted to premalignant oral lesions are in scope.

@@ -80,7 +80,7 @@ the MeSH term `Humans`, which unindexed records lack, so if *no* record in an ex
 check is skipped with a warning — an all-unindexed export and an export that omitted MeSH cannot be
 told apart from the records alone.
 
-## Stage 2 — Deduplication ✅ (built; never run on real data)
+## Stage 2 — Deduplication ✅ (run on `pubmed_v1r`: 194 records → 194 unique reports, 0 duplicates)
 
 ```
 .venv/Scripts/python -m scripts.dedup.deduplicate                 # all parsed sources
@@ -111,7 +111,7 @@ decisions, it does not make them). Records are mapped to a `report_id`, never de
 A `report_id` is a unique *publication*. The unique *study* (`study_id`) is established later, at full
 text, by the reviewer — several reports of one cohort collapse to one `study_id` (D004).
 
-## Stage 3 — Screening ✅ infrastructure built · ⏳ **no record screened yet**
+## Stage 3 — Screening ✅ title/abstract complete · ⏳ **no full text retrieved or assessed**
 
 ```
 .venv/Scripts/python -m scripts.screening.worksheet --stage ta            # create (refuses to overwrite)
@@ -131,17 +131,31 @@ automated classification of any kind; decisions are the human reviewer's (D010).
 are restricted to the stage at which they can honestly be judged, so reasons needing the methods
 section are unavailable at title/abstract and the reviewer records `unresolved` instead.
 
+**Title/abstract result:** 194 of 194 reports screened, 109 excluded (`wrong_outcome` 63,
+`wrong_design` 33, `review_or_meta` 10, `not_english` 2, `wrong_population` 1), 85 taken forward,
+0 unresolved. The decisions were recorded by adopting a tool-generated suggestion set that the
+reviewer reviewed; the worksheet schema has no `suggestion` field, so a decision-log entry
+describing that process is **outstanding** and is required for PRISMA item 8.
+
 Full guide, including the spreadsheet caveat and the unresolved protocol decisions this module does
 **not** settle: [`screening.md`](screening.md).
 
-Blocked on **P003** — whether an undefined "non-smoker" reference group satisfies inclusion
-criterion 4, which sets the boundary of the `no_reference_group` code — and **P006**, registration
-before screening begins. **P004** constrains extraction, not eligibility; it reaches screening only
-through the `no_usable_data` boundary, for a study reporting no contrast the protocol uses.
+**P003** bites at *full-text* screening, where it sets the boundary of the `no_reference_group`
+code — that code is unavailable at title/abstract, so P003 could not affect the pass just completed.
+**P004** constrains extraction, not eligibility; it reaches screening only through the
+`no_usable_data` boundary, for a study reporting no contrast the protocol uses. **P006** was listed
+as needed before screening and the title/abstract pass was performed without it; that is a deviation
+to report, not a silent omission. The stage assignment of exclusion reasons in
+`config/screening.yaml` remains a proposal awaiting endorsement, and no identifier yet covers
+whether populations restricted to premalignant oral lesions are in scope — 14 of the 85 reports
+taken forward depend on it.
 
-## Stage 4 — Full-text retrieval ⏳
+## Stage 4 — Full-text retrieval ⏳ worksheet built · **nothing sought**
 
+`data/screening/screening_ft.csv` holds the 85 reports taken forward, every reviewer field empty.
 Tracks retrieval status and source per `report_id`. PDFs are gitignored; only status is tracked.
+Until a `full_text_status` is recorded, the PRISMA flow reports every downstream full-text count as
+`<pending>` rather than 0, so an untouched stage cannot read as a null finding.
 
 ## Stage 5 — Extraction ✅ infrastructure built · ⏳ **nothing extracted yet**
 

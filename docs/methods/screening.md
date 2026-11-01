@@ -135,5 +135,7 @@ Two things are **configurable and explicitly unresolved**, not quietly decided:
    `unresolved`, or `other` with a written justification.
 
 Also still open and relevant: **P003** (whether an undefined "non-smoker" reference group is
-eligible) and **P006** (protocol registration, which should precede screening). **P004** affects
+eligible), which bites at *full text* because `no_reference_group` is unavailable at
+title/abstract; and **P006** (protocol registration, which should precede screening) — the
+title/abstract pass was performed without it, which is a deviation to report. **P004** affects
 extraction rather than title/abstract eligibility.
