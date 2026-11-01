@@ -85,7 +85,7 @@ oscc-smoking-meta-analysis/
 ├── tests/
 ├── results/validation/ # generated reports
 ├── config/sources.yaml # one entry per database × search version
-├── CLAUDE.md           # working conventions and standing prohibitions
+├── AGENTS.md           # working conventions and standing prohibitions
 └── README.md
 ```
 

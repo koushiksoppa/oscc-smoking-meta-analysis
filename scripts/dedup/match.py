@@ -7,7 +7,7 @@ Two confidence levels, deliberately separated:
   NEEDS_REVIEW — records whose titles are merely *similar*. These are reported as candidate
                  pairs and are NOT merged. Only the human reviewer can resolve them, because a
                  near-identical title can be a conference abstract, an erratum, a reanalysis or a
-                 genuinely different paper (D010: an AI assistant is not a reviewer).
+                 genuinely different paper (D010: automated tooling is not a reviewer).
 
 Nothing is deleted at any confidence level; grouping only assigns a shared report_id.
 """

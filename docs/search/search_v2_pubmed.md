@@ -6,10 +6,10 @@ export exists. One is added only when the researcher runs the search and exports
 (`docs/methods/obtaining_exports.md`).
 
 The counts below were obtained by submitting the query to PubMed and to NCBI E-utilities on
-**2026-10-29 by Claude** (read-only, no sign-in, no account access) purely to confirm the syntax
-parses, that each block behaves as intended, and what retrieval volume to expect. That is **not**
-the systematic search: the search of record is the one the researcher executes and exports, with its
-own date and count.
+**2026-10-29 by automated tooling** (read-only, no sign-in, no account access) purely to confirm
+the syntax parses, that each block behaves as intended, and what retrieval volume to expect. That
+is **not** the systematic search: the search of record is the one the researcher executes and
+exports, with its own date and count.
 
 ## Why v2 is needed
 
@@ -88,7 +88,7 @@ and Cross-Sectional Studies, so **no literal "case-control" or "cohort" label is
 `"Risk Factors"[Mesh]`, `"Odds Ratio"[Mesh]` and the effect-measure free-text terms catch
 aetiological studies that describe their design only in the methods.
 
-## Validated counts (syntax check, 2026-10-29, by Claude)
+## Validated counts (syntax check, 2026-10-29, by automated tooling)
 
 | Line | Query | Count |
 |---|---|---|

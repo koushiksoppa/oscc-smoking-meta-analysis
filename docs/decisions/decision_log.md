@@ -65,7 +65,7 @@ Each entry records a decision, its rationale, its methodological basis, and its 
 - **Decision:** Screening and data extraction are performed by one human reviewer. This is reported as a limitation under PRISMA 2020 items 8 and 9. Consequences carried through the pipeline: reviewer identity is recorded on every decision; any automated pre-sort is stored in a separate `suggestion` field that can never satisfy a `decision` field; and the review is never described as independently duplicated.
 - **Rationale:** Resource constraint, declared openly rather than overstated.
 - **Basis:** PRISMA 2020 requires reporting how many reviewers screened each record and whether they worked independently. Single-reviewer screening raises the risk of erroneous exclusion.
-- **Impact:** A recognised limitation affecting the reliability of study selection and extraction. It does not alter effect estimates, but it must appear in the Limitations section. An AI assistant is not a reviewer and is not reported as one.
+- **Impact:** A recognised limitation affecting the reliability of study selection and extraction. It does not alter effect estimates, but it must appear in the Limitations section. Automated tooling is not a reviewer and is not reported as one.
 
 ### D011 — Separate registry entries for separate search executions
 - **Type:** protocol

@@ -45,8 +45,8 @@ Established by inspecting the export itself, not assumed:
 ## Reconciliation of 194 against the documented 138
 
 Counts obtained by re-running the v1 query string through NCBI E-utilities on **2026-10-29**
-(executed by Claude, read-only, no account access; recorded separately from the researcher's own
-executions):
+(executed by automated tooling under the reviewer's direction, read-only, no account access;
+recorded separately from the researcher's own executions):
 
 | Query as run | Count | Date |
 |---|---|---|

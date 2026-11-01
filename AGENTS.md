@@ -17,7 +17,7 @@ anything; this file is the short operational summary.
 4. **No commits, pushes or installs without explicit authorisation.** Git identity is currently unset.
    Never rewrite history or force-push. `main` is the working branch.
 5. **No pooled analysis before the gate** in provenance rule 13 is met and the SAP is approved.
-6. **An AI assistant is not a reviewer.** Screening and risk-of-bias decisions belong to the human
+6. **Automated tooling is not a reviewer.** Screening and risk-of-bias decisions belong to the human
    reviewer (D010). Automated output goes in a `suggestion` field, never a `decision` field.
 7. **No causal language** from observational associations.
 8. Material methodological decisions are escalated to the reviewer, not made silently, and are
